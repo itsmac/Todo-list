@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<body >
+    <form method="POST" action="{{ url_for('post_method')}}>
+        <label for="comments">TO DO:</label>
+        <textarea name="comments" id = "comments" required></textarea>
+        <br>
+        <!-- <input type="button" id = "submitButton" onclick="handleData();"> -->
+        <button id="submitButton" type= "submit" onclick="postData()" formmethod="POST">Submit</button>
+    </form>
+    <br>
+<div id = "get">
+    <ul id = list-of-nodes >
+    </ul>
+</div>
+<script type="text/javascript">
+
+window.onload = function(){
+   ajax_get()
+}
+
+function postData(){
+    var data_param = document.getElementById('comments').value
+    var method = "POST"
+    var url = "/POST/todo/api/v1.0/task"
+    data = {"comments": String(data_param)}
+    param = JSON.stringify(data)
+    var xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    xhr.setRequestHeader('Content-type', 'application/json');
+    xhr.onload = function () {
+	var jsonResponse = JSON.parse(xhr.responseText);
+	if (xhr.readyState == 4 && xhr.status == "200") {
+        console.log(jsonResponse.comments);
+        addItem(jsonResponse.comments,jsonResponse.id) 
+	} 
+    else {
+		console.error(jsonResponse);
+	}
+}
+    xhr.send(param) 
+    
+}
+
+function delData(){
+    var id = this.id
+    console.log(id)
+    var url = '/DELETE/todo/api/v1.0/task/';
+    var xhr = new XMLHttpRequest();
+    xhr.open("DELETE", url+id, true);
+    xhr.onload = function () {
+	var jsonResponse = JSON.parse(xhr.responseText);
+	    if (xhr.readyState == 4 && xhr.status == "200") {
+            console.log(jsonResponse);
+            var elem = document.getElementById(id).parentNode;
+            while (elem.firstChild) {
+                elem.removeChild(elem.firstChild);
+                }
+            }
+        else {
+            console.error(jsonResponse);
+        }
+}
+xhr.send(null);
+}
+
+function putData(){
+    var url = "/PUT/todo/api/v1.0/task/";
+    var id = this.id
+    var put_data = document.getElementById(id).innerText
+    console.log(put_data)
+    data = {};
+    data.comments = put_data;
+    var param = JSON.stringify(data);
+    var xhr = new XMLHttpRequest();
+    xhr.open("PUT", url+id, true);
+    xhr.setRequestHeader('Content-type','application/json; charset=utf-8');
+    xhr.onload = function () {
+	var jsonResponse = JSON.parse(xhr.responseText);
+	if (xhr.readyState == 4 && xhr.status == "200") {
+		console.log(jsonResponse);
+	} else {
+		console.error(jsonResponse);
+	}
+}
+xhr.send(param); 
+   
+}
+
+
+function addItem(data,id){
+    var ul = document.getElementById("list-of-nodes");
+    var li = document.createElement("li");
+    var div = document.createElement("div");
+    li.setAttribute('id',id)
+    li.contentEditable = true;
+    var deleteButton = document.createElement("button")
+    var updateButton = document.createElement("button")
+    deleteButton.setAttribute('id',id);
+    deleteButton.onclick = delData;
+    updateButton.setAttribute('id',id);
+    updateButton.onclick = putData;
+    li.appendChild(document.createTextNode(data));
+    deleteButton.innerHTML = "Delete";
+    updateButton.innerHTML = "Update";
+    ul.appendChild(div);
+    div.appendChild(li)
+    div.appendChild(updateButton)
+    div.appendChild(deleteButton)
+    
+}
+
+function ajax_get(){
+var req = new XMLHttpRequest();
+req.overrideMimeType("application/json");
+req.open('GET', '/GET/todo/api/v1.0/task', true);
+req.onload  = function() {
+   var jsonResponse = JSON.parse(req.responseText);
+   var count = Object.keys(jsonResponse.comments).length;
+   for(var i =0;i <count;i++ ){
+    var resObj = jsonResponse.comments[i]
+    var data = resObj.comments;
+    var id = resObj.id;
+    addItem(data,id);
+   }
+};
+req.send(null);
+
+}    
+</script>
+</body>
+</html>
